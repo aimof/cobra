@@ -844,6 +844,18 @@ func (c *Command) AddCommand(cmds ...*Command) {
 		}
 		c.commands = append(c.commands, x)
 		c.commandsAreSorted = false
+		//cmds[i].updateParentsPflags()
+		if cmds[i].parentsPflags == nil {
+			cmds[i].parentsPflags = flag.NewFlagSet(cmds[i].Name(), flag.ContinueOnError)
+			cmds[i].parentsPflags.SetOutput(c.flagErrorBuf)
+			cmds[i].parentsPflags.SortFlags = false
+		}
+		//
+		//cmds[i].VisitParents(func(parent *Command) {
+		cmds[i].parentsPflags.AddFlagSet(c.PersistentFlags())
+		//})
+		cmds[i].Flags().AddFlagSet(cmds[i].parentsPflags)
+		//
 	}
 }
 
@@ -1121,6 +1133,7 @@ func (c *Command) LocalFlags() *flag.FlagSet {
 		}
 		c.lflags.SetOutput(c.flagErrorBuf)
 	}
+
 	c.lflags.SortFlags = c.Flags().SortFlags
 
 	addToLocal := func(f *flag.Flag) {
